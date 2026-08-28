@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Ma Todo List</title>
+
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <style>
+    * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f1f3f6;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 500px;
+    max-width: 90%;
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 15px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+/* FORMULAIRE */
+
+#todoForm {
+    display: flex;
+    gap: 10px;
+}
+
+#todoInput {
+    flex: 1;
+
+    padding: 12px;
+
+    border: 1px solid #ccc;
+    border-radius: 8px;
+
+    font-size: 16px;
+}
+
+#todoForm button {
+    border: none;
+
+    background: #333;
+    color: white;
+
+    padding: 12px 18px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+#todoForm button:hover {
+    background: #555;
+}
+
+/* MESSAGE */
+
+#message {
+    color: #d63031;
+
+    margin-top: 10px;
+
+    min-height: 20px;
+}
+
+/* LISTE */
+
+#todoList {
+    list-style: none;
+
+    margin-top: 20px;
+}
+
+.todo {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px;
+
+    margin-bottom: 10px;
+
+    background: #f7f7f7;
+
+    border-radius: 8px;
+}
+
+.todo-text {
+    flex: 1;
+
+    cursor: pointer;
+}
+
+.todo.completed .todo-text {
+    text-decoration: line-through;
+
+    color: #999;
+}
+
+.delete {
+    border: none;
+
+    background: #e74c3c;
+
+    color: white;
+
+    width: 30px;
+    height: 30px;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+}
+
+.delete:hover {
+    background: #c0392b;
+}
+
+/* FOOTER */
+
+.footer {
+    margin-top: 25px;
+
+    border-top: 1px solid #ddd;
+
+    padding-top: 20px;
+}
+
+#count {
+    font-weight: bold;
+}
+
+.filters {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    margin-top: 15px;
+}
+
+.filter {
+    border: 1px solid #ccc;
+
+    background: white;
+
+    padding: 8px 12px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+}
+
+.filter:hover,
+.filter.active {
+    background: #333;
+    color: white;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 500px) {
+
+    #todoForm {
+        flex-direction: column;
+    }
+
+    #todoForm button {
+        width: 100%;
+    }
+
+    .filters {
+        flex-wrap: wrap;
+    }
+}
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <h1>Ma Todo List</h1>
+
+        <form id="todoForm">
+
+            <input
+                type="text"
+                id="todoInput"
+                placeholder="Ajouter une tâche..."
+                autocomplete="off"
+            >
+
+            <button type="submit">
+                Ajouter
+            </button>
+
+        </form>
+
+        <p id="message"></p>
+
+        <ul id="todoList"></ul>
+
+        <div class="footer">
+
+            <p>
+                <span id="count">0</span>
+                tâche(s) restante(s)
+            </p>
+
+            <div class="filters">
+
+                <button class="filter active" data-filter="all">
+                    Toutes
+                </button>
+
+                <button class="filter" data-filter="todo">
+                    À faire
+                </button>
+
+                <button class="filter" data-filter="done">
+                    Terminées
+                </button>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Notre JavaScript -->
+    <script>
+$(document).ready(function () {
+
+    // Filtre actuel
+    let currentFilter = "all";
+
+
+    // ==========================
+    // AJOUTER UNE TÂCHE
+    // ==========================
+
+    $("#todoForm").on("submit", function (event) {
+
+        event.preventDefault();
+
+        const text = $("#todoInput").val().trim();
+
+
+        // Vérification
+        if (text === "") {
+
+            $("#message")
+                .text("⚠ Veuillez saisir une tâche.")
+                .hide()
+                .fadeIn();
+
+            return;
+        }
+
+
+        // Effacer le message
+        $("#message").text("");
+
+
+        // Création de la tâche
+        const todo = $(`
+            <li class="todo">
+
+                <input
+                    type="checkbox"
+                    class="check"
+                >
+
+                <span class="todo-text"></span>
+
+                <button
+                    class="delete"
+                    type="button"
+                >
+                    ✕
+                </button>
+
+            </li>
+        `);
+
+
+        // Ajouter le texte
+        todo.find(".todo-text").text(text);
+
+
+        // Ajouter la tâche dans la liste
+        $("#todoList").prepend(todo);
+
+
+        // Animation
+        todo.hide().slideDown(300);
+
+
+        // Vider le champ
+        $("#todoInput").val("");
+
+
+        // Mettre à jour le compteur
+        updateCount();
+
+    });
+
+    //
+    // // ==========================
+    // // TERMINER UNE TÂCHE
+    // // ==========================
+    //
+    $("#todoList").on("change", ".check", function () {
+
+        const todo = $(this).closest(".todo");
+
+
+        todo.toggleClass("completed");
+
+
+        // Petite animation
+        todo.find(".todo-text")
+            .fadeTo(150, 0.5)
+            .fadeTo(150, 1);
+
+
+        updateCount();
+
+    });
+
+    //
+    // // ==========================
+    // // SUPPRIMER UNE TÂCHE
+    // // ==========================
+
+     $("#todoList").on("click", ".delete", function () {
+
+         const todo = $(this).closest(".todo");
+
+
+         todo.slideUp(300, function () {
+
+             todo.remove();
+
+             updateCount();
+
+         });
+
+     });
+
+
+    // ==========================
+    // FILTRES
+    // ==========================
+    //
+    $(".filter").on("click", function () {
+
+        // Retirer active
+        $(".filter").removeClass("active");
+
+        // Ajouter active au bouton cliqué
+        $(this).addClass("active");
+
+
+        currentFilter = $(this).data("filter");
+
+
+        applyFilter();
+
+    });
+    //
+    //
+    // // ==========================
+    // // APPLIQUER LE FILTRE
+    // // ==========================
+    //
+    function applyFilter() {
+
+        $(".todo").each(function () {
+
+            const todo = $(this);
+
+            const completed =
+                todo.hasClass("completed");
+
+
+            if (currentFilter === "all") {
+
+                todo.fadeIn(200);
+
+            }
+            else if (
+                currentFilter === "todo" &&
+                !completed
+            ) {
+
+                todo.fadeIn(200);
+
+            }
+            else if (
+                currentFilter === "done" &&
+                completed
+            ) {
+
+                todo.fadeIn(200);
+
+            }
+            else {
+
+                todo.fadeOut(200);
+
+            }
+
+        });
+
+    }
+    //
+
+    // ==========================
+    // COMPTEUR
+    // ==========================
+
+    function updateCount() {
+
+        const total =
+            $(".todo").length;
+
+        const completed =
+            $(".todo.completed").length;
+
+        const remaining =
+            total - completed;
+
+
+        $("#count").text(remaining);
+
+    }
+
+});
+    </script>
+
+</body>
+</html>
